@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html ng-app="redditCloneApp">
+  <head>
+    <meta charset="utf-8">
+    <title>A Movable Feast - Reddit Clone</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.4/css/bootstrap.min.css" integrity="sha384-2hfp1SzUoho7/TsGGGDaFdsuuDL0LX2hnUp6VkX3CUQ2K4K+xjboZdsXyp4oUHZj" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.4.0/animate.min.css">
+    <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.6.3/css/font-awesome.min.css" rel="stylesheet" integrity="sha384-T8Gy5hrqNKT+hzMclPo118YTQO6cYprQmhrYwIiQ/3axmI1hQomh7Ud2hPOy8SP1" crossorigin="anonymous">
+    <link rel="stylesheet" href="main.css" media="screen" title="no title">
+  </head>
+  <body ng-controller="redditController" ng-cloak>
+    <!-- NAV BAR -->
+    <nav class="navbar navbar-light bg-faded">
+      <ul class="nav navbar-nav">
+        <!-- TITLE -->
+        <li class="nav-item active" id="logo">
+          <a class="nav-link" href="#"> A Movable Feast </a>
+        </li>
+        <!-- ADD POST -->
+        <li class="nav-item">
+          <a class="nav-link" href="#" ng-click="togglePostForm()">
+            <i class="fa fa-plus" aria-hidden="true"></i>
+            Submit Post
+          </a>
+        </li>
+        <!-- SEARCH INPUT FORM -->
+        <form class="nav-item">
+           <input type="text" class="form-control" ng-model="view.fuzzyFinder" placeholder="Search">
+        </form>
+        <!-- SORT BY CATEGORY -->
+        <li class="nav-item dropdown" ng-model="view">
+          <a class="nav-link dropdown-toggle" data-toggle="dropdown"
+              href="#" role="button" aria-haspopup="true" aria-expanded="false">
+            Sort By {{view.category}}
+          </a>
+          <div class="dropdown-menu">
+            <a class="dropdown-item" ng-click="setSortCategory('restaurant')" href="#">Restaurant</a>
+            <a class="dropdown-item" ng-click="setSortCategory('chef')" href="#">Chef</a>
+            <a class="dropdown-item" ng-click="setSortCategory('votes')" href="#">Votes</a>
+            <a class="dropdown-item" ng-click="setSortCategory('date')" href="#">Date</a>
+          </div>
+        </li>
+      </ul>
+    </nav>
+
+    <!-- NEW POST FORM -->
+    <div class="container">
+      <div class="row" ng-model="view" ng-show="view.newPostForm">
+        <form name="newPostForm" ng-submit="submitNewPost(newPostForm)" novalidate>
+          <div class="form-group">
+            <label for="restaurant">Restaurant</label>
+            <input type="text" class="form-control" name="restaurant" ng-model="post.restaurant" ng-class="{'has-error': newPostForm.restaurant.$touched && newPostForm.restaurant.$invalid}" placeholder="Title" required>
+            <p class= "has-error" ng-show="newPostForm.restaurant.$touched && newPostForm.restaurant.$invalid"><small>Input field is required.</small></p>
+          </div>
+
+          <div class="form-group">
+            <label for="chef">Chef</label>
+            <input type="text" class="form-control" name="chef"  ng-model="post.chef" ng-class="{'has-error': newPostForm.chef.$touched && newPostForm.chef.$invalid}" placeholder="Title" required>
+            <p class= "has-error" ng-show="newPostForm.chef.$touched && newPostForm.chef.$invalid"><small>Input field is required.</small></p>
+          </div>
+
+          <div class="form-group">
+            <label for="author">Author</label>
+            <input type="text" class="form-control" name="author" ng-model="post.author" ng-class="{'has-error': newPostForm.author.$touched && newPostForm.author.$invalid}" placeholder="Author" required>
+            <p class="has-error"   ng-show="newPostForm.author.$touched && newPostForm.author.$invalid"><small>Input field is required.</small></p>
+          </div>
+
+          <div class="form-group">
+            <label for="image-url">Image URL</label>
+            <input type="text" class="form-control" name="imageURL" ng-model="post.imageURL" ng-class="{'has-error': newPostForm.imageURL.$touched && newPostForm.imageURL.$invalid}" placeholder="Image URL" required>
+            <p class= "has-error" ng-show="newPostForm.imageURL.$touched && newPostForm.imageURL.$invalid"><small>Input field is required.</small></p>
+          </div>
+
+          <div class="form-group">
+            <label for="description">Description</label>
+            <textarea class="form-control" name="description" rows="4" ng-model="post.description" ng-class="{'has-error': newPostForm.description.$touched && newPostForm.description.$invalid}" placeholder="Description" required></textarea>
+            <p class= "has-error" ng-show="newPostForm.description.$touched && newPostForm.description.$invalid"><small>Input field is required.</small></p>
+          </div>
+
+          <input type="submit" class="btn btn-primary" value="Submit Post" ng-disabled="newPostForm.$invalid">
+        </form>
+      </div>
+
+      <!-- VIEW ALL POSTS -->
+      <div class="all-posts row" ng-model="view" ng-repeat="post in view.posts | orderBy: view.categorysort | filter: view.fuzzyFinder">
+        <div class="card singlePost">
+          <img ng-src="{{post.imageURL}}" alt="Card image">
+          <div class="card-block">
+            <h4 class="card-title">
+              {{post.restaurant}}  |  {{post.chef}}
+            </h4>
+            <h6 class="card-subtitle text-muted">
+              {{post.author}}
+            </h6>
+            <div>
+              <span ng-click="voteUp(post)">
+                <i class="fa fa-arrow-up" aria-hidden="true"></i>
+              </span>
+              <span ng-click="voteDown(post)">
+                <i class="fa fa-arrow-down" aria-hidden="true"></i>
+              </span>
+              <span ng-class="{green: post.votes > 0, red: post.votes < 0}">{{post.votes}}</span>
+            </div>
+          </div>
+          <div class="card-block">
+            <p class="card-text">
+              {{post.description}}
+            </p>
+          </div>
+          <div class="bottom-text card-block">
+            <p class="card-text">
+
+              <span>
+                  <i class="fa fa-calendar" aria-hidden="true"></i>
+                  <span>
+                  {{ post.date | amCalendar }}</span>
+              </span>
+
+              <span> | </span>
+
+              <span ng-click="toggleComments(post)">
+                <i class="fa fa-comment" aria-hidden="true"></i>
+                {{post.comments.length}}
+                <ng-pluralize count="post.comments.length"
+                when="{
+                  '1': 'comment',
+                  'other': 'comments'}">
+              </span>
+
+              <span> | </span>
+
+              <span ng-click="toggleCommentForm()">
+                <i class="fa fa-pencil" aria-hidden="true"></i>
+                Add Comment
+              </span>
+            </p>
+          </div>
+
+          <div class="comment-block" ng-show="post.viewcomments && post.comments.length > 0">
+            <div ng-repeat="comment in post.comments">
+              <p class="comment-single">
+                {{comment.author}} - {{comment.text}}
+              </p>
+            </div>
+          </div>
+
+          <div class="comment-block" ng-show="view.newcommentForm">
+            <form class="form-inline" name="commentForm" novalidate>
+
+              <div class="form-group">
+                <label for="author"><small>Name</small></label>
+                <input type="text" class="form-control form-control-sm" name="author" ng-model="post.comments.author" ng-class="{'has-error': commentForm.author.$touched && commentForm.author.$invalid}" placeholder="Your Name" required>
+              </div>
+              <div class="form-group">
+                <label for="text"><small>Comment</small></label>
+                <input type="text" class="form-control form-control-sm" name="text" ng-model="post.comments.text" ng-class="{'has-error': commentForm.text.$touched && commentForm.text.$invalid}" placeholder="Your comment" required>
+              </div>
+              <input type="submit" class="btn btn-secondary btn-sm" value="Submit" ng-click="submitComment(commentForm, post)" ng-disabled="commentForm.$invalid">
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- Footer  -->
+    <nav class="navbar navbar-light bg-faded ">
+        <a class="footer" href="https://github.com/Jkim55/nomadic" target="blank"><small>See this project on <i class="fa fa-github fa-lg"></i>  </small></a>
+        <p class="footer nav navbar-nav pull-xs-right"><small>Powered by JiggaQuads</small></p>
+    </nav>
+
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.0.0/jquery.min.js" integrity="sha384-THPy051/pYDQGanwU6poAc/hOdQxjnOEXzbT+OuUAFqNqFjL+4IGLBgCJC3ZOShY" crossorigin="anonymous"></script>
+  <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.5/angular.js"></script>
+  <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/angularjs/1.5.5/angular-animate.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/tether/1.2.0/js/tether.min.js" integrity="sha384-Plbmg8JY28KFelvJVai01l8WyZzrYWG825m+cZ0eDDS1f7d/js6ikvy1+X+guPIB" crossorigin="anonymous"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.4/js/bootstrap.min.js" integrity="sha384-VjEeINv9OSwtWFLAtmc4JCtEJXXBub00gtSnszmspDLCtC0I4z4nqz7rEFbIZLLU" crossorigin="anonymous"></script>
+  <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.5/angular-animate.js"></script>
+  <script src="https://cdn.jsdelivr.net/momentjs/2.14.1/moment.min.js" charset="utf-8"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/angular-moment/0.10.3/angular-moment.min.js" charset="utf-8"></script>
+  <script type="text/javascript" src="app.js"></script>
+  </body>
+</html>
